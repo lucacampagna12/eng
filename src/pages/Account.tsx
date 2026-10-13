@@ -1,4 +1,4 @@
-import { Bell, Eye, EyeOff, Lock, Moon, Sun, Trash2, Upload, User } from 'lucide-react'
+import { Bell, Eye, EyeOff, Lock, LogOut, Moon, Sun, Trash2, Upload, User } from 'lucide-react'
 import * as React from 'react'
 import { Navigate, NavLink, useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/common'
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input, Label, Switch } from '@/components/ui/misc'
 import { cn } from '@/lib/utils'
 import * as api from '@/services'
+import { useAuth } from '@/store/auth'
 import { useTheme, useUser } from '@/store/user'
 import type { NotificationPreferences } from '@/types'
 
@@ -27,6 +28,7 @@ export function AccountPage() {
     <>
       <PageHeader title="My Account">
         <MobileThemeToggle />
+        <SignOutButton />
       </PageHeader>
       <div className="flex gap-6 px-4 pt-4 pb-10 max-lg:flex-col max-lg:gap-4 md:px-[44px] md:pt-[45px]">
         <nav className="no-scrollbar flex w-[194px] shrink-0 flex-col gap-1 max-lg:w-full max-lg:flex-row max-lg:overflow-x-auto" aria-label="Account sections">
@@ -55,6 +57,33 @@ export function AccountPage() {
         </div>
       </div>
     </>
+  )
+}
+
+async function downscaleAvatar(dataUrl: string, size = 256): Promise<string> {
+  const img = new Image()
+  img.src = dataUrl
+  await img.decode()
+  const side = Math.min(img.naturalWidth, img.naturalHeight)
+  const canvas = document.createElement('canvas')
+  canvas.width = canvas.height = size
+  canvas
+    .getContext('2d')!
+    .drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, size, size)
+  return canvas.toDataURL('image/jpeg', 0.85)
+}
+
+function SignOutButton() {
+  const status = useAuth((s) => s.status)
+  const signOut = useAuth((s) => s.signOut)
+  if (status === 'disabled') return null
+  return (
+    <button
+      onClick={signOut}
+      className="flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-hover hover:text-foreground md:ml-auto"
+    >
+      <LogOut className="size-4" /> Sign out
+    </button>
   )
 }
 
@@ -101,7 +130,8 @@ function ProfileSection() {
     if (file.size > MAX_SIZE) return setError('The image must be 5MB or smaller.')
     setError(undefined)
     const reader = new FileReader()
-    reader.onload = () => setAvatar(reader.result as string)
+    // Downscale to a small square JPEG so the profile row stays light.
+    reader.onload = async () => setAvatar(await downscaleAvatar(reader.result as string))
     reader.readAsDataURL(file)
   }
 

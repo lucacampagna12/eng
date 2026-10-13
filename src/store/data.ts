@@ -15,6 +15,7 @@ interface DataState {
   media: MediaItem[]
   approvalComments: ApprovalComment[]
   load: () => Promise<void>
+  createClient: (name: string) => Promise<Client>
   createProject: (input: Parameters<typeof api.createProject>[0]) => Promise<Project>
   updateProjects: (ids: string[], patch: Partial<Project>) => Promise<void>
   duplicateProject: (id: string) => Promise<void>
@@ -63,6 +64,11 @@ export const useData = create<DataState>((set, get) => ({
     set({ users, clients, projects, tasks, approvals, team, messages, media, approvalComments, loaded: true })
   },
 
+  createClient: async (name) => {
+    const created = await api.createClient(name)
+    set((s) => ({ clients: [...s.clients, created].sort((a, b) => a.name.localeCompare(b.name)) }))
+    return created
+  },
   createProject: async (input) => {
     const project = await api.createProject(input)
     set((s) => ({ projects: [...s.projects, project] }))

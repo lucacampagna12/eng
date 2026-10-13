@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthGate } from '@/components/auth/AuthGate'
 import { Toaster } from '@/components/common/Toaster'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AccountPage } from '@/pages/Account'
@@ -12,6 +13,7 @@ import { TasksPage } from '@/pages/Tasks'
 export function App() {
   return (
     <BrowserRouter>
+      <AuthGate>
       <Routes>
         {/* Shared review link: full screen, outside the app shell */}
         <Route path="approvals/:id" element={<ApprovalReviewPage />} />
@@ -26,6 +28,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
+      </AuthGate>
       <Toaster />
     </BrowserRouter>
   )
