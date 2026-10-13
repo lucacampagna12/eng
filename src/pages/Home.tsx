@@ -30,6 +30,7 @@ import { Checkbox, Hint } from '@/components/ui/misc'
 import { isUserApprover } from '@/lib/approvals'
 import { cn } from '@/lib/utils'
 import { byId, useData } from '@/store/data'
+import { canCreateProjects, ROLE_LABELS } from '@/lib/permissions'
 import { useUser } from '@/store/user'
 import type { Approval } from '@/types'
 
@@ -150,11 +151,13 @@ export function HomePage() {
         <Panel className="mt-[13px] px-4 pt-[14px] pb-[17px]">
           <div className="flex h-6 items-center justify-between">
             <SectionTitle>Recent Projects</SectionTitle>
-            <Hint label="New project">
-              <Button variant="ghost" size="icon-sm" onClick={() => setNewProjectOpen(true)} aria-label="New project" className="-mr-1.5">
-                <Plus className="!size-4" />
-              </Button>
-            </Hint>
+            {canCreateProjects(user) && (
+              <Hint label="New project">
+                <Button variant="ghost" size="icon-sm" onClick={() => setNewProjectOpen(true)} aria-label="New project" className="-mr-1.5">
+                  <Plus className="!size-4" />
+                </Button>
+              </Hint>
+            )}
           </div>
           <div className="mt-[30px]">
             {!loaded ? (
@@ -251,7 +254,7 @@ export function HomePage() {
                   <li key={m.userId} className="flex items-center gap-2.5">
                     <Avatar name={u.name} src={u.avatarUrl} size={24} />
                     <span className="flex-1 truncate text-sm">{u.name}</span>
-                    <span className="text-2xs text-muted-foreground capitalize">{u.role}</span>
+                    <span className="text-2xs text-muted-foreground">{ROLE_LABELS[u.role]}</span>
                   </li>
                 )
               })}

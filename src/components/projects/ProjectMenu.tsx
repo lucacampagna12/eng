@@ -11,7 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { canCreateProjects } from '@/lib/permissions'
 import { useData } from '@/store/data'
+import { useUser } from '@/store/user'
 import type { Project } from '@/types'
 
 /** Kebab (⋮) menu shared by the full and compact project cards. */
@@ -19,6 +21,8 @@ export function ProjectMenu({ project, className }: { project: Project; classNam
   const navigate = useNavigate()
   const { updateProjects, duplicateProject, deleteProjects } = useData()
   const [confirmOpen, setConfirmOpen] = useState(false)
+  // Duplicating creates a project, which only the admin and managers may do.
+  const canDuplicate = canCreateProjects(useUser((s) => s.user))
 
   // Portaled menu/dialog events still bubble through the React tree; keep them away from the card's onClick.
   return (
@@ -39,14 +43,16 @@ export function ProjectMenu({ project, className }: { project: Project; classNam
           <DropdownMenuItem onSelect={() => navigate(`/projects/${project.id}?edit=1`)}>
             <Pencil /> Edit
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={async () => {
-              await duplicateProject(project.id)
-              toast(`Duplicated ${project.title}`)
-            }}
-          >
-            <Copy /> Duplicate
-          </DropdownMenuItem>
+          {canDuplicate && (
+            <DropdownMenuItem
+              onSelect={async () => {
+                await duplicateProject(project.id)
+                toast(`Duplicated ${project.title}`)
+              }}
+            >
+              <Copy /> Duplicate
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onSelect={async () => {
               await updateProjects([project.id], { archived: !project.archived })

@@ -7,7 +7,7 @@ import { isSupabaseConfigured } from '@/lib/supabase'
 import * as mock from './mock'
 import * as remote from './remote'
 
-export type { NewApprovalInput, NewCommentInput, NewProjectInput, UploadMediaInput } from './mock'
+export type { MemberPatch, NewApprovalInput, NewCommentInput, NewMemberInput, NewProjectInput, UploadMediaInput } from './mock'
 
 const impl: typeof mock = isSupabaseConfigured ? remote : mock
 
@@ -16,6 +16,9 @@ export const getCurrentUser = impl.getCurrentUser
 export const updateCurrentUser = impl.updateCurrentUser
 export const changePassword = impl.changePassword
 export const getUsers = impl.getUsers
+export const getMembers = impl.getMembers
+export const createMember = impl.createMember
+export const updateMember = impl.updateMember
 export const getNotificationPreferences = impl.getNotificationPreferences
 export const updateNotificationPreferences = impl.updateNotificationPreferences
 export const getClients = impl.getClients

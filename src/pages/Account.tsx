@@ -1,10 +1,12 @@
-import { Bell, Eye, EyeOff, Lock, LogOut, Moon, Sun, Trash2, Upload, User } from 'lucide-react'
+import { Bell, Eye, EyeOff, Lock, LogOut, Moon, Sun, Trash2, Upload, User, Users } from 'lucide-react'
 import * as React from 'react'
 import { Navigate, NavLink, useParams } from 'react-router-dom'
+import { TeamSection } from '@/components/account/TeamSection'
 import { PageHeader } from '@/components/common'
 import { toast } from '@/components/common/Toaster'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Switch } from '@/components/ui/misc'
+import { isAdmin } from '@/lib/permissions'
 import { cn } from '@/lib/utils'
 import * as api from '@/services'
 import { useAuth } from '@/store/auth'
@@ -15,6 +17,7 @@ const SECTIONS = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'password', label: 'Password', icon: Lock },
+  { id: 'team', label: 'Team', icon: Users, adminOnly: true },
 ] as const
 
 export function AccountPage() {
@@ -22,7 +25,11 @@ export function AccountPage() {
   const user = useUser((s) => s.user)
   // Remount the profile form when the saved user changes so its fields reset to the stored values.
   const profileKey = `${user?.id}:${user?.name}:${user?.avatarUrl?.length ?? 0}`
-  if (!SECTIONS.some((s) => s.id === section)) return <Navigate to="/account/profile" replace />
+  const sections = SECTIONS.filter((s) => !('adminOnly' in s) || isAdmin(user))
+  // Wait for the user before deciding: admin-only sections would otherwise bounce on reload.
+  if (!SECTIONS.some((s) => s.id === section) || (user && !sections.some((s) => s.id === section))) {
+    return <Navigate to="/account/profile" replace />
+  }
 
   return (
     <>
@@ -32,7 +39,7 @@ export function AccountPage() {
       </PageHeader>
       <div className="flex gap-6 px-4 pt-4 pb-10 max-lg:flex-col max-lg:gap-4 md:px-[44px] md:pt-[45px]">
         <nav className="no-scrollbar flex w-[194px] shrink-0 flex-col gap-1 max-lg:w-full max-lg:flex-row max-lg:overflow-x-auto" aria-label="Account sections">
-          {SECTIONS.map(({ id, label, icon: Icon }) => (
+          {sections.map(({ id, label, icon: Icon }) => (
             <NavLink
               key={id}
               to={`/account/${id}`}
@@ -53,6 +60,7 @@ export function AccountPage() {
             {section === 'profile' && <ProfileSection key={profileKey} />}
             {section === 'notifications' && <NotificationsSection />}
             {section === 'password' && <PasswordSection />}
+            {section === 'team' && <TeamSection />}
           </section>
         </div>
       </div>

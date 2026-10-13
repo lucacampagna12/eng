@@ -26,7 +26,7 @@ import type {
   TeamMember,
   User,
 } from '@/types'
-import type { NewApprovalInput, NewCommentInput, NewProjectInput, UploadMediaInput } from './mock'
+import type { MemberPatch, NewApprovalInput, NewCommentInput, NewMemberInput, NewProjectInput, UploadMediaInput } from './mock'
 
 const sb = () => {
   if (!client) throw new Error('Supabase is not configured')
@@ -71,6 +71,8 @@ const toUser = (r: Row): User => ({
   email: r.email as string,
   avatarUrl: (r.avatar_url as string) ?? undefined,
   role: r.role as User['role'],
+  isActive: r.is_active as boolean,
+  clientId: (r.client_id as string) ?? undefined,
 })
 
 const toProject = (r: Row): Project => ({
@@ -224,8 +226,37 @@ export async function changePassword(current: string, next: string): Promise<voi
   if (res.error) throw new Error(res.error.message)
 }
 
+/** Active team members (no clients): the people projects and tasks can be assigned to. */
 export async function getUsers(): Promise<User[]> {
-  return must(await sb().from('profiles').select('*').eq('is_active', true).order('name')).map(toUser)
+  return must(await sb().from('profiles').select('*').eq('is_active', true).neq('role', 'client').order('name')).map(toUser)
+}
+
+/** Everyone with an account, including clients and blocked accounts. Admin only. */
+export async function getMembers(): Promise<User[]> {
+  return must(await sb().from('profiles').select('*').order('created_at')).map(toUser)
+}
+
+/** Accounts are created server-side (api/admin/members.ts): it needs the Supabase secret key. */
+export async function createMember(input: NewMemberInput): Promise<User> {
+  const token = (await sb().auth.getSession()).data.session?.access_token
+  if (!token) throw new Error('Sign in again to create accounts.')
+  const res = await fetch('/api/admin/members', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+    body: JSON.stringify(input),
+  })
+  const body = (await res.json().catch(() => null)) as { profile?: Row; error?: string } | null
+  if (!body) throw new Error('Creating accounts only works on the published site.')
+  if (!res.ok || !body.profile) throw new Error(body.error ?? 'Could not create the account.')
+  return toUser(body.profile)
+}
+
+export async function updateMember(id: string, patch: MemberPatch): Promise<User> {
+  const row: Row = {}
+  if (patch.role !== undefined) row.role = patch.role
+  if (patch.isActive !== undefined) row.is_active = patch.isActive
+  if ('clientId' in patch) row.client_id = patch.clientId ?? null
+  return toUser(must(await sb().from('profiles').update(row).eq('id', id).select().single()))
 }
 
 export async function getTeam(): Promise<TeamMember[]> {

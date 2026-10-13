@@ -6,6 +6,10 @@ export interface User {
   email: string
   avatarUrl?: string
   role: Role
+  /** False once the admin blocks the account. */
+  isActive?: boolean
+  /** Client accounts only: which client they belong to. */
+  clientId?: string
 }
 
 export interface Client {

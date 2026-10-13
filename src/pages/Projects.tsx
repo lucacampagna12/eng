@@ -1,6 +1,7 @@
-import { FolderSearch, Search, SlidersHorizontal, X } from 'lucide-react'
+import { FolderSearch, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EmptyState, PageHeader } from '@/components/common'
+import { NewProjectDialog } from '@/components/home/dialogs'
 import { AddFilterButton, DueFilterControl, ListFilterControl, type FilterOption } from '@/components/projects/filters'
 import { ProjectCard } from '@/components/projects/ProjectCard'
 import { ProjectListHeader, ProjectRow } from '@/components/projects/ProjectRow'
@@ -15,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from '@/components/ui/dialog'
 import { useProjectQuerySync } from '@/hooks/useProjectQuerySync'
+import { canCreateProjects } from '@/lib/permissions'
 import { filterProjects, hasActiveFilters, isDueActive, type ListField } from '@/lib/projectFilters'
 import { useData } from '@/store/data'
 import { useProjectsView } from '@/store/projectsView'
@@ -53,6 +55,7 @@ export function ProjectsPage() {
   const filtersActive = hasActiveFilters(query)
   const activeCount = Object.values(query.lists).filter((f) => f && f.values.length > 0).length + (isDueActive(query.due) ? 1 : 0)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [newProjectOpen, setNewProjectOpen] = useState(false)
 
   const filterControls = (
     <>
@@ -81,7 +84,15 @@ export function ProjectsPage() {
 
   return (
     <>
-      <PageHeader title="Projects" />
+      <PageHeader title="Projects">
+        {/* Only the admin and managers create projects (also enforced by RLS). */}
+        {canCreateProjects(me) && (
+          <Button variant="primary" size="sm" onClick={() => setNewProjectOpen(true)} className="mr-2 ml-auto rounded-lg md:mr-[26px]">
+            <Plus /> New Project
+          </Button>
+        )}
+      </PageHeader>
+      <NewProjectDialog open={newProjectOpen} onOpenChange={setNewProjectOpen} />
       <div className="flex flex-col px-4 pt-3 pb-10 md:px-[34px] md:pt-[17px]">
         {/* Row 1: view controls + toggles + bulk actions */}
         <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 md:mx-0 md:overflow-visible md:px-0">

@@ -27,6 +27,7 @@ import type {
   NotificationPreferences,
   Project,
   Task,
+  Role,
   TeamMember,
   User,
 } from '@/types'
@@ -132,9 +133,55 @@ export async function changePassword(current: string, next: string): Promise<voi
   if (current === next) throw new Error('New password must be different from the current one.')
 }
 
+/** Active team members (no clients): the people projects and tasks can be assigned to. */
 export async function getUsers(): Promise<User[]> {
   await delay()
+  return copy(db.users.filter((u) => u.role !== 'client' && u.isActive !== false))
+}
+
+export interface NewMemberInput {
+  name: string
+  email: string
+  password: string
+  role: Exclude<Role, 'admin'>
+  clientId?: string
+}
+export type MemberPatch = Partial<Pick<User, 'role' | 'isActive' | 'clientId'>>
+
+/** Everyone with an account, including clients and blocked accounts. Admin only. */
+export async function getMembers(): Promise<User[]> {
+  await delay()
   return copy(db.users)
+}
+
+export async function createMember(input: NewMemberInput): Promise<User> {
+  await delay(400)
+  const email = input.email.trim().toLowerCase()
+  if (db.users.some((u) => u.email.toLowerCase() === email)) throw new Error('An account with that email already exists.')
+  const user: User = {
+    id: `u${Date.now()}`,
+    name: input.name.trim(),
+    email,
+    role: input.role,
+    isActive: true,
+    clientId: input.role === 'client' ? input.clientId : undefined,
+  }
+  db.users.push(user)
+  persist()
+  return copy(user)
+}
+
+export async function updateMember(id: string, patch: MemberPatch): Promise<User> {
+  await delay(200)
+  const user = db.users.find((u) => u.id === id)
+  if (!user) throw new Error('Member not found.')
+  if (patch.role === 'admin') throw new Error('There can only be one admin.')
+  if (user.role === 'admin' && (patch.role || patch.isActive === false)) {
+    throw new Error("The admin account can't be demoted or deactivated.")
+  }
+  Object.assign(user, patch)
+  persist()
+  return copy(user)
 }
 
 export async function getNotificationPreferences(): Promise<NotificationPreferences> {
