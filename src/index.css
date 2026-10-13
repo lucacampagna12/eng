@@ -1,0 +1,227 @@
+@import 'tailwindcss';
+@import 'react-day-picker/style.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Values measured from the reference captures (reference/*.png).
+ * Light mode is the default :root block; dark mode (app default) overrides under .dark.
+ */
+:root {
+  --background: #f5f8fa;
+  --sidebar: #edf2f5;
+  --logo-bg: #233039;
+  --surface: #ffffff;
+  --surface-sunken: #f8fafb;
+  --elevated: #f1f5f7;
+  --elevated-hover: #e7eef2;
+  --hover: #eef3f6;
+  --active: #e3ecf0;
+  --border: #dde6eb;
+  --border-strong: #c9d6de;
+  --foreground: #13202a;
+  --muted-foreground: #4f606d;
+  --subtle-foreground: #84939e;
+  --primary: #048696;
+  --primary-foreground: #ffffff;
+  --accent: #048696;
+  --accent-soft: rgb(4 134 150 / 0.1);
+  --danger: #ef4444;
+  --overlay: rgb(19 32 42 / 0.3);
+  --shadow-popover: 0 10px 30px -8px rgb(19 32 42 / 0.18), 0 2px 6px rgb(19 32 42 / 0.06);
+
+  --chip-green-bg: #dcfce7;
+  --chip-green-fg: #16a34a;
+  --chip-yellow-bg: #fef3c7;
+  --chip-yellow-fg: #d97706;
+  --chip-blue-bg: #d5f3f7;
+  --chip-blue-fg: #048696;
+  --chip-gray-bg: #e9eff2;
+  --chip-gray-fg: #4f606d;
+}
+
+/* Dark (default): navy surfaces derived from the logo background (#233039) + logo teal (#00B5CA). */
+.dark {
+  --background: #18212a;
+  --sidebar: #151d25;
+  --logo-bg: #233039;
+  --surface: #1c2630;
+  --surface-sunken: #172029;
+  --elevated: #1c2630;
+  --elevated-hover: #233039;
+  --hover: #1f2a34;
+  --active: #26343f;
+  --border: #26333f;
+  --border-strong: #334452;
+  --foreground: #f2f6f8;
+  --muted-foreground: #a4adb5;
+  --subtle-foreground: #6f7b86;
+  --primary: #00b5ca;
+  --primary-foreground: #06232b;
+  --accent: #00b5ca;
+  --accent-soft: rgb(0 181 202 / 0.12);
+  --danger: #ef4444;
+  --overlay: rgb(5 10 15 / 0.6);
+  --shadow-popover: 0 16px 40px -8px rgb(3 8 12 / 0.7), 0 2px 8px rgb(3 8 12 / 0.45);
+
+  --chip-green-bg: #0f2e27;
+  --chip-green-fg: #34d399;
+  --chip-yellow-bg: #2e2816;
+  --chip-yellow-fg: #fbbf24;
+  --chip-blue-bg: #0d3640;
+  --chip-blue-fg: #00b5ca;
+  --chip-gray-bg: #263441;
+  --chip-gray-fg: #d3dde4;
+}
+
+@theme inline {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+
+  --color-background: var(--background);
+  --color-sidebar: var(--sidebar);
+  --color-logo-bg: var(--logo-bg);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-elevated: var(--elevated);
+  --color-elevated-hover: var(--elevated-hover);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-danger: var(--danger);
+  --color-overlay: var(--overlay);
+
+  --color-chip-green-bg: var(--chip-green-bg);
+  --color-chip-green-fg: var(--chip-green-fg);
+  --color-chip-yellow-bg: var(--chip-yellow-bg);
+  --color-chip-yellow-fg: var(--chip-yellow-fg);
+  --color-chip-blue-bg: var(--chip-blue-bg);
+  --color-chip-blue-fg: var(--chip-blue-fg);
+  --color-chip-gray-bg: var(--chip-gray-bg);
+  --color-chip-gray-fg: var(--chip-gray-fg);
+
+  --shadow-popover: var(--shadow-popover);
+
+  --text-2xs: 11px;
+  --text-2xs--line-height: 16px;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
+  --text-md: 15px;
+  --text-md--line-height: 22px;
+  --text-lg: 20px;
+  --text-lg--line-height: 28px;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 18px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+/* react-day-picker theme */
+.rdp-root {
+  --rdp-accent-color: var(--accent);
+  --rdp-accent-background-color: var(--elevated-hover);
+  --rdp-day-height: 32px;
+  --rdp-day-width: 32px;
+  --rdp-day_button-height: 30px;
+  --rdp-day_button-width: 30px;
+  --rdp-day_button-border-radius: 6px;
+  --rdp-selected-border: 1px solid var(--border-strong);
+  --rdp-range_middle-background-color: var(--elevated);
+  --rdp-range_start-color: var(--primary-foreground);
+  --rdp-range_end-color: var(--primary-foreground);
+  --rdp-range_start-date-background-color: var(--primary);
+  --rdp-range_end-date-background-color: var(--primary);
+  --rdp-today-color: var(--foreground);
+  --rdp-nav-height: 32px;
+  --rdp-nav_button-height: 28px;
+  --rdp-nav_button-width: 28px;
+  font-size: 12px;
+}
+.rdp-root .rdp-today:not(.rdp-outside) .rdp-day_button {
+  font-weight: 700;
+  text-decoration: underline;
+}
+.rdp-root .rdp-caption_label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.rdp-root .rdp-weekday {
+  color: var(--subtle-foreground);
+  font-size: 11px;
+  font-weight: 500;
+}
+.rdp-root .rdp-chevron {
+  fill: var(--muted-foreground);
+  width: 14px;
+  height: 14px;
+}
+.rdp-root .rdp-selected {
+  font-size: inherit;
+  font-weight: 600;
+}
+.rdp-root .rdp-selected:not(.rdp-range_middle) .rdp-day_button {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: transparent;
+}
+
+/* Horizontal scrollers (toolbars on phones) without a visible scrollbar */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Phones: 16px form fields stop iOS Safari from zooming in when an input is focused. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
